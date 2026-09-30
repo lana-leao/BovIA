@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Untitled</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="stylesheet" href="/style.css">
+  </head>
+
+  <body>
+    <!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BovIA — Manejo Sustentável e IA</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Chart.js para Gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-green: #1b4332;
+            --accent-green: #2d6a4f;
+            --light-green: #d8f3dc;
+            --bg-body: #f8f9fa;
+        }
+        body { background-color: var(--bg-body); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .sidebar { min-height: 100vh; background-color: var(--primary-green); color: white; }
+        .sidebar .nav-link { color: #b7e4c7; cursor: pointer; margin-bottom: 8px; border-radius: 6px; transition: 0.2s; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { background-color: var(--accent-green); color: white; }
+        .card-metric { border-left: 5px solid var(--accent-green); border-radius: 8px; }
+        .badge-bom { background-color: #2b9348; color: white; }
+        .badge-atencao { background-color: #e9c46a; color: #1d3557; }
+        .badge-baixo { background-color: #e63946; color: white; }
+        .sust-score-box { background: var(--light-green); border-radius: 12px; border: 1px solid #b7e4c7; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- SIDEBAR -->
+        <div class="col-md-3 col-lg-2 sidebar p-3 shadow">
+            <h4 class="text-white fw-bold mb-1">🐄 BovIA</h4>
+            <small class="text-success-light mb-4 d-block">IA & Manejo Sustentável</small>
+            <hr class="border-secondary">
+            <div class="nav flex-column nav-pills">
+                <a class="nav-link active" onclick="navegar('dashboard')">📊 Dashboard Geral</a>
+                <a class="nav-link" onclick="navegar('sustentabilidade')">🌎 Sustentabilidade & Eficiência</a>
+                <a class="nav-link" onclick="navegar('ficha')">📋 Ficha do Animal</a>
+                <a class="nav-link" onclick="navegar('cadastro')">➕ Cadastros / Manejo</a>
+            </div>
+        </div>
+
+        <!-- CONTEÚDO PRINCIPAL -->
+        <div class="col-md-9 col-lg-10 p-4">
+
+            <!-- 1. DASHBOARD GERAL -->
+            <div id="sec-dashboard">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>📊 Visão Geral do Rebanho</h2>
+                    <span class="badge bg-success p-2">Sistema BovIA Ativo</span>
+                </div>
+
+                <!-- Métricas do Rebanho -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-2">
+                        <div class="card card-metric p-3 shadow-sm bg-white">
+                            <small class="text-muted fw-bold">Total Animais</small>
+                            <h3 id="dash-total" class="mb-0 text-dark">0</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="card card-metric p-3 shadow-sm bg-white">
+                            <small class="text-muted fw-bold">Peso Médio</small>
+                            <h3 id="dash-peso-medio" class="mb-0 text-dark">0 kg</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="card card-metric p-3 shadow-sm bg-white">
+                            <small class="text-muted fw-bold">GMD Médio</small>
+                            <h3 id="dash-gmd-medio" class="mb-0 text-dark">0 kg/d</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card card-metric p-3 shadow-sm bg-white border-start-warning">
+                            <small class="text-muted fw-bold">Atenção / Baixo</small>
+                            <h3 id="dash-alerta" class="mb-0 text-dark">0</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card p-3 shadow-sm bg-light border-success">
+                            <small class="text-success fw-bold">Índice BovIA</small>
+                            <h3 id="dash-sust-index" class="mb-0 text-success">0/100</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráficos -->
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card p-3 shadow-sm bg-white">
+                            <h5 class="fw-bold mb-3">Distribuição do Desempenho</h5>
+                            <canvas id="chartDesempenho" height="200"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card p-3 shadow-sm bg-white">
+                            <h5 class="fw-bold mb-3">Evolução de Peso Geral</h5>
+                            <canvas id="chartEvolucaoGeral" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. MÓDULO DE SUSTENTABILIDADE E EFICIÊNCIA -->
+            <div id="sec-sustentabilidade" style="display:none;">
+                <h2 class="mb-4">🌎 Sustentabilidade e Eficiência</h2>
+                
+                <!-- Score Global -->
+                <div class="sust-score-box p-4 mb-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-3 text-center border-end border-success">
+                            <small class="text-uppercase fw-bold text-success">Índice de Eficiência BovIA</small>
+                            <h1 id="sust-score-num" class="display-4 fw-bold text-success mb-0">78/100</h1>
+                            <span class="badge bg-success">Boa Eficiência</span>
+                        </div>
+                        <div class="col-md-9 ps-4">
+                            <h5 class="fw-bold text-success">🎯 Principal Oportunidade de Melhoria</h5>
+                            <p id="sust-oportunidade" class="mb-1 text-dark">Analisando dados do lote...</p>
+                            <small class="text-muted">*Indicador zootécnico de apoio interno, não possui valor de certificação oficial.*</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pilares de Análise -->
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="card p-3 shadow-sm h-100">
+                            <h5 class="text-success fw-bold">🌾 Eficiência Alimentar</h5>
+                            <div id="sust-alimentar-conteudo" class="mt-2"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card p-3 shadow-sm h-100">
+                            <h5 class="text-primary fw-bold">💧 Uso Eficiente da Água</h5>
+                            <div id="sust-agua-conteudo" class="mt-2"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mt-3">
+                        <div class="card p-3 shadow-sm h-100">
+                            <h5 class="text-warning fw-bold">🌱 Manejo da Pastagem</h5>
+                            <div id="sust-pastagem-conteudo" class="mt-2"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mt-3">
+                        <div class="card p-3 shadow-sm h-100">
+                            <h5 class="text-dark fw-bold">🐄 Eficiência do Animal (Identificar antes de Aumentar)</h5>
+                            <div id="sust-animal-conteudo" class="mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. FICHA DO ANIMAL -->
+            <div id="sec-ficha" style="display:none;">
+                <h2 class="mb-4">📋 Acompanhamento Individual</h2>
+                
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Selecione o Animal:</label>
+                        <select id="select-animal" class="form-select" onchange="carregarFichaAnimal()"></select>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="card p-3 shadow-sm bg-white">
+                            <h5 class="fw-bold text-secondary">Dados Cadastrais</h5>
+                            <div id="info-cadastro" class="mt-2"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card p-3 shadow-sm bg-white">
+                            <h5 class="fw-bold text-secondary">Desempenho Zootécnico</h5>
+                            <div id="info-metricas" class="mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alertas da IA -->
+                <div id="area-alertas" class="alert alert-warning d-none shadow-sm">
+                    <h5 class="alert-heading fw-bold">⚠️ Alertas de Manejo:</h5>
+                    <ul id="lista-alertas" class="mb-0"></ul>
+                </div>
+
+                <!-- Análise da IA -->
+                <div class="card p-3 shadow-sm mb-4 border-success">
+                    <h5 class="text-success fw-bold">🤖 Análise da Inteligência Artificial (BovIA)</h5>
+                    <p id="ia-diagnostico" class="fw-bold text-dark mt-2"></p>
+                    <h6 class="fw-bold text-secondary mt-3">💡 Recomendações Sustentáveis de Manejo:</h6>
+                    <ul id="ia-recomendacoes" class="text-dark"></ul>
+                    <hr>
+                    <small class="text-muted">*Aviso: O BovIA gera recomendações de apoio à decisão. Alterações sanitárias ou graves exigem avaliação por um médico-veterinário.*</small>
+                </div>
+
+                <div class="card p-3 shadow-sm">
+                    <h5 class="fw-bold text-secondary">Gráfico de Evolução de Peso</h5>
+                    <canvas id="chartEvolucaoIndiv" height="150"></canvas>
+                </div>
+            </div>
+
+            <!-- 4. CADASTRO / PESAGEM -->
+            <div id="sec-cadastro" style="display:none;">
+                <h2 class="mb-4">➕ Lançamentos e Dados</h2>
+
+                <ul class="nav nav-tabs mb-3">
+                    <li class="nav-item">
+                        <a class="nav-link active fw-bold" id="tab1" onclick="alternarAba('cad-animal')">Cadastrar Animal</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-bold" id="tab2" onclick="alternarAba('cad-pesagem')">Registrar Pesagem</a>
+                    </li>
+                </ul>
+
+                <!-- FORM ANIMAL -->
+                <div id="form-animal" class="card p-4 shadow-sm bg-white">
+                    <form onsubmit="salvarAnimal(event)">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Identificação / Brinco</label>
+                                <input type="text" id="add-id" class="form-control" required placeholder="Ex: BOV-004">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Sexo</label>
+                                <select id="add-sexo" class="form-select">
+                                    <option>Macho</option>
+                                    <option>Fêmea</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Raça</label>
+                                <input type="text" id="add-raca" class="form-control" value="Nelore">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Sistema de Criação</label>
+                                <select id="add-sistema" class="form-select">
+                                    <option>Pasto</option>
+                                    <option>Semiconfinamento</option>
+                                    <option>Confinamento</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Objetivo Produtivo</label>
+                                <select id="add-objetivo" class="form-select">
+                                    <option>Engorda</option>
+                                    <option>Crescimento</option>
+                                    <option>Terminação</option>
+                                    <option>Reprodução</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Meta GMD (kg/dia)</label>
+                                <input type="number" step="0.05" id="add-meta" class="form-control" value="0.800">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Escore Condição Corporal (1-5)</label>
+                                <input type="number" step="0.5" id="add-ecc" class="form-control" value="3.0">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Alimentação Principal</label>
+                                <input type="text" id="add-alimentacao" class="form-control" value="Pasto + Mineral">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Peso Inicial (kg)</label>
+                                <input type="number" step="0.1" id="add-peso-ini" class="form-control" value="250">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Data Pesagem Inicial</label>
+                                <input type="date" id="add-data-ini" class="form-control" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Observações do Produtor</label>
+                                <input type="text" id="add-obs" class="form-control" placeholder="Sem ocorrências">
+                            </div>
+                            <div class="col-12 mt-4">
+                                <button type="submit" class="btn btn-success px-4">Salvar Cadastro</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- FORM PESAGEM -->
+                <div id="form-pesagem" class="card p-4 shadow-sm bg-white" style="display:none;">
+                    <form onsubmit="salvarPesagem(event)">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Selecione o Animal</label>
+                                <select id="add-p-animal" class="form-select"></select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Data do Manejo</label>
+                                <input type="date" id="add-p-data" class="form-control" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Novo Peso (kg)</label>
+                                <input type="number" step="0.1" id="add-p-peso" class="form-control" required placeholder="Ex: 280">
+                            </div>
+                            <div class="col-12 mt-4">
+                                <button type="submit" class="btn btn-primary px-4">Registrar Pesagem</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+// BASE DE DADOS EM MEMÓRIA
+let animais = [
+    { id: "BOV-001", sexo: "Macho", raca: "Nelore", sistema: "Pasto", objetivo: "Engorda", meta: 0.800, ecc: 3.5, alimentacao: "Pasto + Sal Mineral", obs: "Lote 1" },
+    { id: "BOV-002", sexo: "Fêmea", raca: "Angus", sistema: "Semiconfinamento", objetivo: "Reprodução", meta: 0.600, ecc: 2.5, alimentacao: "Pasto + Ração 1%", obs: "Consumo irregular no cocho" },
+    { id: "BOV-003", sexo: "Macho", raca: "Cruzamento Industrial", sistema: "Confinamento", objetivo: "Terminação", meta: 1.200, ecc: 4.0, alimentacao: "Silagem + Concentrado", obs: "Adaptação concluída" }
+];
+
+let pesagens = [
+    { id: "BOV-001", data: "2026-06-10", peso: 320 },
+    { id: "BOV-001", data: "2026-07-10", peso: 345 },
+    { id: "BOV-001", data: "2026-08-11", peso: 372 },
+    { id: "BOV-002", data: "2026-06-10", peso: 280 },
+    { id: "BOV-002", data: "2026-07-10", peso: 298 },
+    { id: "BOV-002", data: "2026-08-11", peso: 302 }, // Queda no GMD
+    { id: "BOV-003", data: "2026-06-10", peso: 410 },
+    { id: "BOV-003", data: "2026-07-10", peso: 450 },
+    { id: "BOV-003", data: "2026-08-11", peso: 490 }
+];
+
+let chartDesempenhoRef = null;
+let chartEvolucaoRef = null;
+let chartIndivRef = null;
+
+// NAVEGAÇÃO
+function navegar(secao) {
+    document.querySelectorAll('.sidebar .nav-link').forEach(el => el.classList.remove('active'));
+    document.getElementById('sec-dashboard').style.display = 'none';
+    document.getElementById('sec-sustentabilidade').style.display = 'none';
+    document.getElementById('sec-ficha').style.display = 'none';
+    document.getElementById('sec-cadastro').style.display = 'none';
+
+    if(secao === 'dashboard') {
+        document.getElementById('sec-dashboard').style.display = 'block';
+        event.target.classList.add('active');
+        atualizarDashboard();
+    } else if(secao === 'sustentabilidade') {
+        document.getElementById('sec-sustentabilidade').style.display = 'block';
+        event.target.classList.add('active');
+        carregarModuloSustentabilidade();
+    } else if(secao === 'ficha') {
+        document.getElementById('sec-ficha').style.display = 'block';
+        event.target.classList.add('active');
+        populaSelectAnimais();
+        carregarFichaAnimal();
+    } else if(secao === 'cadastro') {
+        document.getElementById('sec-cadastro').style.display = 'block';
+        event.target.classList.add('active');
+        populaSelectAnimais();
+    }
+}
+
+// CÁLCULOS ZOOTÉCNICOS E ALERTAS
+function calcularMetricas(idAnimal) {
+    let pAnimal = pesagens.filter(p => p.id === idAnimal).sort((a,b) => new Date(a.data) - new Date(b.data));
+    let dadosA = animais.find(a => a.id === idAnimal);
+    
+    if(pAnimal.length < 2) return null;
+
+    let pInicial = pAnimal[0].peso;
+    let pAtual = pAnimal[pAnimal.length - 1].peso;
+    let pPenultimo = pAnimal[pAnimal.length - 2].peso;
+
+    let dAtual = new Date(pAnimal[pAnimal.length - 1].data);
+    let dPenultimo = new Date(pAnimal[pAnimal.length - 2].data);
+    
+    let diasDiff = (dAtual - dPenultimo) / (1000 * 60 * 60 * 24);
+    let gmdAtual = diasDiff > 0 ? (pAtual - pPenultimo) / diasDiff : 0;
+
+    // GMD Anterior
+    let gmdAnterior = null;
+    if(pAnimal.length >= 3) {
+        let dAntepenultimo = new Date(pAnimal[pAnimal.length - 3].data);
+        let diasAnt = (dPenultimo - dAntepenultimo) / (1000 * 60 * 60 * 24);
+        gmdAnterior = diasAnt > 0 ? (pPenultimo - pAnimal[pAnimal.length - 3].peso) / diasAnt : 0;
+    }
+
+    let meta = dadosA.meta;
+    let status = "";
+    let badgeClass = "";
+
+    if(gmdAtual >= meta) {
+        status = "🟢 BOM DESEMPENHO";
+        badgeClass = "badge-bom";
+    } else if(gmdAtual >= (meta * 0.75)) {
+        status = "🟡 ATENÇÃO";
+        badgeClass = "badge-atencao";
+    } else {
+        status = "🔴 BAIXO DESEMPENHO";
+        badgeClass = "badge-baixo";
+    }
+
+    let alertas = [];
+    if(gmdAtual < (meta * 0.75)) {
+        alertas.push(`⚠️ Desempenho abaixo da meta cadastrada. Recomenda-se investigar possíveis causas.`);
+    }
+    if(gmdAnterior && gmdAnterior > 0) {
+        let variacao = ((gmdAtual - gmdAnterior) / gmdAnterior) * 100;
+        if(variacao <= -20) {
+            alertas.push(`⚠️ Animal ${idAnimal} apresentou redução de ${Math.abs(variacao).toFixed(1)}% no GMD em relação à avaliação anterior.`);
+        }
+    }
+    if(pAtual <= pPenultimo) {
+        alertas.push(`⚠️ Peso do animal permaneceu praticamente sem evolução durante o período avaliado.`);
+    }
+
+    return {
+        pesoInicial: pInicial,
+        pesoAtual: pAtual,
+        ganhoTotal: pAtual - pInicial,
+        gmdAtual: gmdAtual,
+        gmdAnterior: gmdAnterior,
+        meta: meta,
+        status: status,
+        badgeClass: badgeClass,
+        alertas: alertas,
+        historico: pAnimal
+    };
+}
+
+// DASHBOARD
+function atualizarDashboard() {
+    let total = animais.length;
+    let pesos = [], gmds = [], statusCount = { bom: 0, atencao: 0, baixo: 0 };
+
+    animais.forEach(a => {
+        let m = calcularMetricas(a.id);
+        if(m) {
+            pesos.push(m.pesoAtual);
+            gmds.push(m.gmdAtual);
+            if(m.status.includes("BOM")) statusCount.bom++;
+            else if(m.status.includes("ATENÇÃO")) statusCount.atencao++;
+            else statusCount.baixo++;
+        }
+    });
+
+    let pesoMedio = pesos.length ? (pesos.reduce((a,b)=>a+b,0)/pesos.length).toFixed(1) : 0;
+    let gmdMedio = gmds.length ? (gmds.reduce((a,b)=>a+b,0)/gmds.length).toFixed(3) : 0;
+
+    document.getElementById('dash-total').innerText = total;
+    document.getElementById('dash-peso-medio').innerText = `${pesoMedio} kg`;
+    document.getElementById('dash-gmd-medio').innerText = `${gmdMedio} kg/d`;
+    document.getElementById('dash-alerta').innerText = statusCount.atencao + statusCount.baixo;
+    document.getElementById('dash-sust-index').innerText = "78/100";
+
+    // Gráfico Donut
+    if(chartDesempenhoRef) chartDesempenhoRef.destroy();
+    let ctxPie = document.getElementById('chartDesempenho').getContext('2d');
+    chartDesempenhoRef = new Chart(ctxPie, {
+        type: 'doughnut',
+        data: {
+            labels: ['Bom desempenho', 'Atenção', 'Baixo desempenho'],
+            datasets: [{
+                data: [statusCount.bom, statusCount.atencao, statusCount.baixo],
+                backgroundColor: ['#2b9348', '#e9c46a', '#e63946']
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    // Gráfico de Linhas Geral
+    if(chartEvolucaoRef) chartEvolucaoRef.destroy();
+    let ctxLine = document.getElementById('chartEvolucaoGeral').getContext('2d');
+    chartEvolucaoRef = new Chart(ctxLine, {
+        type: 'line',
+        data: {
+            labels: ["Jun/26", "Jul/26", "Ago/26"],
+            datasets: animais.map((a, i) => {
+                let hist = pesagens.filter(p => p.id === a.id);
+                let cores = ['#1b4332', '#e76f51', '#2a9d8f'];
+                return {
+                    label: a.id,
+                    data: hist.map(h => h.peso),
+                    borderColor: cores[i % cores.length],
+                    fill: false
+                };
+            })
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+}
+
+// MÓDULO DE SUSTENTABILIDADE & EFICIÊNCIA
+function carregarModuloSustentabilidade() {
+    document.getElementById('sust-score-num').innerText = "78/100";
+    document.getElementById('sust-oportunidade').innerText = "Manejo da Pastagem: Taxa de lotação levemente superior à oferta de forragem no lote 2.";
+
+    document.getElementById('sust-alimentar-conteudo').innerHTML = `
+        <p class="mb-1"><strong>⚠️ Possível desperdício de alimento:</strong> Lote 2 apresenta sobra de suplemento no cocho.</p>
+        <p class="mb-1 text-muted"><strong>Possíveis causas:</strong> Quantidade fornecida acima da necessidade ou baixa palatabilidade.</p>
+        <p class="mb-1 text-success"><strong>💡 Sugestão:</strong> Avaliar sobras e consumo antes de realizar novos aumentos.</p>
+        <small class="text-secondary"><strong>🌱 Benefício:</strong> Redução de desperdício e melhor aproveitamento do insumo.</small>
+    `;
+
+    document.getElementById('sust-agua-conteudo').innerHTML = `
+        <p class="mb-1"><strong>💧 Uso Eficiente da Água:</strong> Consumo dentro da média esperada por categoria.</p>
+        <p class="mb-1 text-success"><strong>💡 Sugestão:</strong> Manter cronograma de limpeza de bebedouros e checagem de vazamentos.</p>
+        <small class="text-secondary"><strong>🌎 Benefício:</strong> Evitar desperdícios e garantir hidratação adequada.</small>
+    `;
+
+    document.getElementById('sust-pastagem-conteudo').innerHTML = `
+        <p class="mb-1"><strong>🌱 Possível pressão elevada sobre a pastagem:</strong> Relação lotação/forragem em alerta.</p>
+        <p class="mb-1 text-success"><strong>💡 Sugestão:</strong> Avaliar disponibilidade real de matéria seca e considerar rotação de piquetes.</p>
+        <small class="text-secondary"><strong>🌎 Benefício:</strong> Conservação da pastagem e prevenção da degradação do solo.</small>
+    `;
+
+    document.getElementById('sust-animal-conteudo').innerHTML = `
+        <p class="mb-1"><strong>🐄 Princípio: Identificar antes de Aumentar</strong></p>
+        <p class="mb-1">Animal BOV-002 com GMD abaixo da meta. Não aumente a ração antes de checar pasto, água e sanidade.</p>
+        <small class="text-secondary"><strong>🌱 Objetivo:</strong> Evitar elevação do custo produtivo sem correção da causa raiz.</small>
+    `;
+}
+
+// FICHA INDIVIDUAL
+function carregarFichaAnimal() {
+    let id = document.getElementById('select-animal').value;
+    if(!id) return;
+
+    let dadosA = animais.find(a => a.id === id);
+    let m = calcularMetricas(id);
+
+    document.getElementById('info-cadastro').innerHTML = `
+        <p class="mb-1"><strong>ID:</strong> ${dadosA.id} | <strong>Sexo:</strong> ${dadosA.sexo} | <strong>Raça:</strong> ${dadosA.raca}</p>
+        <p class="mb-1"><strong>Sistema:</strong> ${dadosA.sistema} | <strong>Objetivo:</strong> ${dadosA.objetivo}</p>
+        <p class="mb-1"><strong>Alimentação:</strong> ${dadosA.alimentacao}</p>
+        <p class="mb-1"><strong>Escore Corporal:</strong> ${dadosA.ecc} / 5.0</p>
+        <p class="mb-0"><strong>Obs:</strong> ${dadosA.obs}</p>
+    `;
+
+    if(m) {
+        document.getElementById('info-metricas').innerHTML = `
+            <p class="mb-1"><strong>Peso Atual:</strong> ${m.pesoAtual} kg (Ganho Total: ${m.ganhoTotal} kg)</p>
+            <p class="mb-1"><strong>GMD Atual:</strong> ${m.gmdAtual.toFixed(3)} kg/dia</p>
+            <p class="mb-1"><strong>Meta GMD:</strong> ${m.meta.toFixed(3)} kg/dia</p>
+            <p class="mb-0"><strong>Classificação:</strong> <span class="badge ${m.badgeClass}">${m.status}</span></p>
+        `;
+
+        // Alertas
+        let divAlertas = document.getElementById('area-alertas');
+        let listAlertas = document.getElementById('lista-alertas');
+        listAlertas.innerHTML = "";
+        if(m.alertas.length > 0) {
+            divAlertas.classList.remove('d-none');
+            m.alertas.forEach(alt => listAlertas.innerHTML += `<li>${alt}</li>`);
+        } else {
+            divAlertas.classList.add('d-none');
+        }
+
+        // IA + Sustentabilidade
+        let diag = "", recs = [];
+        if(m.gmdAtual >= m.meta) {
+            diag = `O animal ${m.status.toLowerCase()} com GMD de ${m.gmdAtual.toFixed(3)} kg/dia, superando a meta esperada de ${m.meta.toFixed(3)} kg/dia.`;
+            recs = [
+                "Manter o planejamento alimentar e o lote de manejo atual.",
+                "Preservar a rotina de oferta de água e mineralização."
+            ];
+        } else {
+            diag = `O animal apresentou retração no GMD (${m.gmdAtual.toFixed(3)} kg/dia) em relação à meta cadastrada (${m.meta.toFixed(3)} kg/dia).`;
+            recs = [
+                "Verificar a disponibilidade e qualidade da pastagem e da dieta oferecida.",
+                "Avaliar consumo de água, limpeza de bebedouros e escore corporal antes de aumentar insumos.",
+                "Em caso de suspeita sanitária, solicitar avaliação por um médico-veterinário."
+            ];
+        }
+
+        document.getElementById('ia-diagnostico').innerText = diag;
+        let ulRec = document.getElementById('ia-recomendacoes');
+        ulRec.innerHTML = "";
+        recs.forEach(r => ulRec.innerHTML += `<li>${r}</li>`);
+
+        // Gráfico Individual
+        if(chartIndivRef) chartIndivRef.destroy();
+        let ctxIndiv = document.getElementById('chartEvolucaoIndiv').getContext('2d');
+        chartIndivRef = new Chart(ctxIndiv, {
+            type: 'line',
+            data: {
+                labels: m.historico.map(h => h.data),
+                datasets: [{
+                    label: 'Evolução do Peso (kg)',
+                    data: m.historico.map(h => h.peso),
+                    borderColor: '#2d6a4f',
+                    backgroundColor: '#d8f3dc',
+                    fill: true
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+}
+
+// FORMULÁRIOS
+function populaSelectAnimais() {
+    let selects = [document.getElementById('select-animal'), document.getElementById('add-p-animal')];
+    selects.forEach(s => {
+        s.innerHTML = "";
+        animais.forEach(a => s.innerHTML += `<option value="${a.id}">${a.id} — ${a.raca}</option>`);
+    });
+}
+
+function salvarAnimal(e) {
+    e.preventDefault();
+    let id = document.getElementById('add-id').value;
+    let sexo = document.getElementById('add-sexo').value;
+    let raca = document.getElementById('add-raca').value;
+    let sistema = document.getElementById('add-sistema').value;
+    let objetivo = document.getElementById('add-objetivo').value;
+    let meta = parseFloat(document.getElementById('add-meta').value);
+    let ecc = parseFloat(document.getElementById('add-ecc').value);
+    let alimentacao = document.getElementById('add-alimentacao').value;
+    let obs = document.getElementById('add-obs').value;
+    let pesoIni = parseFloat(document.getElementById('add-peso-ini').value);
+    let dataIni = document.getElementById('add-data-ini').value;
+
+    if(animais.find(a => a.id === id)) {
+        alert("Já existe um animal cadastrado com esse ID.");
+        return;
+    }
+
+    animais.push({ id, sexo, raca, sistema, objetivo, meta, ecc, alimentacao, obs });
+    pesagens.push({ id, data: dataIni, peso: pesoIni });
+
+    alert('Animal cadastrado com sucesso!');
+    populaSelectAnimais();
+}
+
+function salvarPesagem(e) {
+    e.preventDefault();
+    let id = document.getElementById('add-p-animal').value;
+    let data = document.getElementById('add-p-data').value;
+    let peso = parseFloat(document.getElementById('add-p-peso').value);
+
+    pesagens.push({ id, data, peso });
+    alert('Pesagem registrada com sucesso!');
+}
+
+function alternarAba(aba) {
+    document.getElementById('tab1').classList.remove('active');
+    document.getElementById('tab2').classList.remove('active');
+    document.getElementById('form-animal').style.display = 'none';
+    document.getElementById('form-pesagem').style.display = 'none';
+
+    if(aba === 'cad-animal') {
+        document.getElementById('tab1').classList.add('active');
+        document.getElementById('form-animal').style.display = 'block';
+    } else {
+        document.getElementById('tab2').classList.add('active');
+        document.getElementById('form-pesagem').style.display = 'block';
+    }
+}
+
+// INICIALIZAÇÃO
+document.getElementById('add-data-ini').valueAsDate = new Date();
+document.getElementById('add-p-data').valueAsDate = new Date();
+atualizarDashboard();
+</script>
+</body>
+</html>
+    <script src="/script.js"></script>
+  </body>
+
+</html>
